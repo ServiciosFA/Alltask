@@ -7,3 +7,8 @@ export interface Notestype {
   name: string;
   description: string;
 }
+export interface TaskList {
+  id: string;
+  name: string;
+  notes: Notestype[];
+}

@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import NavbarDash from "../../components/NavbarDash";
-import { Dashboard } from "../../types/dashboard";
+import { Dashboard, TaskList } from "../../types/dashboard";
 import { useEffect, useRef, useState } from "react";
 import { FaPlus } from "react-icons/fa6";
 import { CiImageOn } from "react-icons/ci";
@@ -11,53 +11,55 @@ import { RxCross1 } from "react-icons/rx";
 const DashboardItem = () => {
   const location = useLocation();
   const dashboard: Dashboard | undefined = location.state;
-  const [listTask, setListtask] = useState([
-    {
-      id: "1",
-      name: "Lista de tareas",
-      notes: [
-        { id: "1", name: "banner", description: "Realizar banner" },
-        { id: "2", name: "navbar", description: "Realizar navbar" },
-        { id: "3", name: "navbar", description: "Responsive navbar" },
-      ],
-    },
-    {
-      id: "2",
-      name: "En proceso",
-      notes: [
-        { id: "4", name: "Homepage", description: "Realizar Home page" },
-        {
-          id: "5",
-          name: "Homepage",
-          description: "Responsive Home page mobile,tablet, notebook & desktop",
-        },
-        { id: "6", name: "Footer", description: "Realizar footer" },
-      ],
-    },
-    {
-      id: "31",
-      name: "Hecho",
-      notes: [
-        { id: "7", name: "Login", description: "Realizar diseño login" },
-        { id: "8", name: "Signin", description: "Realizar diseño signing" },
-        {
-          id: "9",
-          name: "controles formularios",
-          description: "Realizar controles en formularios",
-        },
-      ],
-    },
-  ]);
+  const [listTask, setListtask] = useState<TaskList[]>([]);
   const [showAdd, setShowAdd] = useState("");
-  const textareaRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLLIElement | null>(null);
 
   useEffect(() => {
+    setListtask([
+      {
+        id: "1",
+        name: "Lista de tareas",
+        notes: [
+          { id: "1", name: "banner", description: "Realizar banner" },
+          { id: "2", name: "navbar", description: "Realizar navbar" },
+          { id: "3", name: "navbar", description: "Responsive navbar" },
+        ],
+      },
+      {
+        id: "2",
+        name: "En proceso",
+        notes: [
+          { id: "4", name: "Homepage", description: "Realizar Home page" },
+          {
+            id: "5",
+            name: "Homepage",
+            description:
+              "Responsive Home page mobile,tablet, notebook & desktop",
+          },
+          { id: "6", name: "Footer", description: "Realizar footer" },
+        ],
+      },
+      {
+        id: "31",
+        name: "Hecho",
+        notes: [
+          { id: "7", name: "Login", description: "Realizar diseño login" },
+          { id: "8", name: "Signin", description: "Realizar diseño signing" },
+          {
+            id: "9",
+            name: "controles formularios",
+            description: "Realizar controles en formularios",
+          },
+        ],
+      },
+    ]);
     const handleClickOutside = (event: MouseEvent) => {
       if (
         textareaRef.current &&
         !textareaRef.current.contains(event.target as Node)
       ) {
-        setShowAdd(""); // Cierra el textarea si el clic fue fuera
+        setShowAdd("");
       }
     };
 
