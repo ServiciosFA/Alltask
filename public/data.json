@@ -1,0 +1,216 @@
+{
+  "dashboards": [
+    {
+      "id": "d1",
+      "name": "Trabajo Listo",
+      "users": [
+        {
+          "id": "u1",
+          "nickname": "Fernando",
+          "mail": "fernando@mail.com",
+          "url": "https://example.com/fernando"
+        },
+        {
+          "id": "u2",
+          "nickname": "Lucia",
+          "mail": "lucia@mail.com",
+          "url": "https://example.com/lucia"
+        },
+        {
+          "id": "u3",
+          "nickname": "Carlos",
+          "mail": "carlos@mail.com",
+          "url": "https://example.com/carlos"
+        }
+      ],
+      "taskLists": [
+        {
+          "id": "tl1",
+          "name": "Lista de tareas",
+          "notes": [
+            {
+              "id": "n1",
+              "description": "Realizar banner",
+              "assignedUsers": ["u1", "u2"],
+              "comments": [
+                {
+                  "id": "c1",
+                  "author": "u1",
+                  "text": "Revisar los colores antes de finalizar.",
+                  "timestamp": "2025-02-18T10:00:00Z"
+                },
+                {
+                  "id": "c2",
+                  "author": "u2",
+                  "text": "He cambiado el fondo según la sugerencia.",
+                  "timestamp": "2025-02-18T12:15:00Z"
+                }
+              ]
+            },
+            {
+              "id": "n2",
+              "description": "Realizar navbar",
+              "assignedUsers": ["u2"],
+              "comments": [
+                {
+                  "id": "c3",
+                  "author": "u2",
+                  "text": "El menú ya está responsive.",
+                  "timestamp": "2025-02-18T14:30:00Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tl2",
+          "name": "En proceso",
+          "notes": [
+            {
+              "id": "n3",
+              "description": "Realizar Home Page",
+              "assignedUsers": ["u1", "u3"],
+              "comments": [
+                {
+                  "id": "c4",
+                  "author": "u3",
+                  "text": "La estructura base está lista.",
+                  "timestamp": "2025-02-18T16:45:00Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d2",
+      "name": "Media Player",
+      "users": [
+        {
+          "id": "u4",
+          "nickname": "Ana",
+          "mail": "ana@mail.com",
+          "url": "https://example.com/ana"
+        },
+        {
+          "id": "u5",
+          "nickname": "Pablo",
+          "mail": "pablo@mail.com",
+          "url": "https://example.com/pablo"
+        }
+      ],
+      "taskLists": [
+        {
+          "id": "tl3",
+          "name": "Tareas Iniciales",
+          "notes": [
+            {
+              "id": "n4",
+              "description": "Configurar reproductor",
+              "assignedUsers": ["u4", "u5"],
+              "comments": [
+                {
+                  "id": "c5",
+                  "author": "u5",
+                  "text": "Ya añadí la compatibilidad con MP4.",
+                  "timestamp": "2025-02-18T18:00:00Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d3",
+      "name": "E-commerce",
+      "users": [
+        {
+          "id": "u6",
+          "nickname": "Mario",
+          "mail": "mario@mail.com",
+          "url": "https://example.com/mario"
+        },
+        {
+          "id": "u7",
+          "nickname": "Sofia",
+          "mail": "sofia@mail.com",
+          "url": "https://example.com/sofia"
+        }
+      ],
+      "taskLists": [
+        {
+          "id": "tl4",
+          "name": "Diseño",
+          "notes": [
+            {
+              "id": "n5",
+              "description": "Crear mockups para la web",
+              "assignedUsers": ["u6"],
+              "comments": [
+                {
+                  "id": "c6",
+                  "author": "u6",
+                  "text": "Subí el primer boceto para revisión.",
+                  "timestamp": "2025-02-18T20:15:00Z"
+                }
+              ]
+            },
+            {
+              "id": "n6",
+              "description": "Definir paleta de colores",
+              "assignedUsers": ["u6", "u7"],
+              "comments": [
+                {
+                  "id": "c7",
+                  "author": "u7",
+                  "text": "Sugiero tonos pastel para el diseño.",
+                  "timestamp": "2025-02-18T21:30:00Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tl5",
+          "name": "Desarrollo",
+          "notes": [
+            {
+              "id": "n7",
+              "description": "Configurar API de pagos",
+              "assignedUsers": ["u7"],
+              "comments": [
+                {
+                  "id": "c8",
+                  "author": "u7",
+                  "text": "API Stripe ya integrada.",
+                  "timestamp": "2025-02-18T22:45:00Z"
+                }
+              ]
+            },
+            {
+              "id": "n8",
+              "description": "Crear sistema de autenticación",
+              "assignedUsers": ["u6", "u7"],
+              "comments": [
+                {
+                  "id": "c9",
+                  "author": "u6",
+                  "text": "Implementando autenticación con OAuth.",
+                  "timestamp": "2025-02-18T23:15:00Z"
+                },
+                {
+                  "id": "c10",
+                  "author": "u7",
+                  "text": "Agregado soporte para Google Login.",
+                  "timestamp": "2025-02-19T00:00:00Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

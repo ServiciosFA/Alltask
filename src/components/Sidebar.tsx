@@ -1,66 +1,122 @@
-import { useState } from "react";
 import { Dashboard } from "../types/dashboard";
-import { Link } from "react-router-dom";
 
-const Sidebar = ({ setDash }: { setDash: (dashboard: Dashboard) => void }) => {
-  const [idDashboard, setidDashboard] = useState("");
-  const dashboards = [
-    { id: "1", name: "Agilestrat" },
-    { id: "2", name: "Trabajo Listo" },
-    { id: "3", name: "Media Player" },
-    { id: "4", name: "Chatapp" },
-    { id: "5", name: "Facebook" },
-    { id: "6", name: "Instagram" },
-    { id: "7", name: "Twitter" },
-    { id: "8", name: "Udemy" },
-    { id: "9", name: "Youtube" },
-    { id: "10", name: "Restaurant" },
-  ];
-  const members = [
-    { id: "1", name: "Fernando" },
-    { id: "2", name: "Lucia" },
-    { id: "3", name: "Yutumaru" },
-  ];
+import SidebarDash from "../pages/Dashboard/SidebarDash";
+import SiderbarMembers from "../pages/Members/SiderbarMembers";
+import { MdOutlineDashboardCustomize } from "react-icons/md";
+import { RxCross1 } from "react-icons/rx";
+import { useState } from "react";
+import { CiCirclePlus } from "react-icons/ci";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "../lib/superbaseClient";
+
+const Sidebar = () => {
+  const [currentDash, setDash] = useState<Dashboard | null>(null);
+  const [addDashboard, setAdddash] = useState(false);
+  const [dashName, setDashname] = useState("");
+  const queryClient = useQueryClient();
+
+  const createDashboard = async (name: string) => {
+    const { data: userData, error: authError } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+
+    if (!userId) {
+      console.error("User not authenticated:", authError);
+      throw new Error("User not authenticated");
+    }
+
+    console.log("Inserting dashboard:", name);
+
+    // Insert dashboard
+    const { data: dashboardData, error: dashboardError } = await supabase
+      .from("dashboards")
+      .insert([{ name }])
+      .select()
+      .single();
+
+    if (dashboardError) {
+      console.error("Dashboard insert error:", dashboardError);
+      throw new Error(dashboardError.message);
+    }
+
+    console.log("Dashboard inserted:", dashboardData);
+
+    // Associate user with dashboard
+    const { error: userDashboardError } = await supabase
+      .from("dashboard_users")
+      .insert([
+        { user_id: userId, dashboard_id: dashboardData.id, role: "admin" },
+      ]);
+
+    if (userDashboardError) {
+      console.error("Dashboard user association error:", userDashboardError);
+      throw new Error(userDashboardError.message);
+    }
+
+    console.log("Dashboard user association successful");
+    return dashboardData;
+  };
+
+  const mutation = useMutation({
+    mutationFn: createDashboard,
+    onSuccess: (newDashboard) => {
+      queryClient.invalidateQueries({ queryKey: ["userDashboards"] });
+      setDash(newDashboard); // Asegurar que el dashboard actual se actualiza
+      setDashname(""); // Limpiar el input después de crear
+    },
+    onError: (error) => {
+      console.error("Error creating dashboard:", error);
+    },
+  });
+
   return (
-    <div className="flex flex-col gap-1 bg-gradient-to-b from-secondary to-secondary-light p-4 border-r-[1px] w-1/5 max-h-full">
-      <h1 className="mb-2 text-xl">DashBoards</h1>
-      <ul className="flex flex-col gap-2 custom-scrollbar w-[12rem] h-3/2 overflow-y-auto text-primary">
-        {dashboards.map((element: Dashboard) => (
-          <Link
-            to={`${element.id}`}
-            state={element}
-            onClick={() => {
-              setidDashboard(element?.id);
-              setDash(element);
-            }}
-            className={
-              idDashboard === element.id
-                ? `flex gap-2 pl-2 cursor-pointer  mx-1  bg-opacity-30 bg-neutral py-1 rounded-md`
-                : `flex gap-2 pl-2 cursor-pointer py-1  mx-1`
-            }
-            key={element.id}
+    <div className="flex flex-col justify-between gap-1 bg-gradient-to-b from-secondary to-secondary-light p-4 border-r-[1px] w-1/5 h-min-full">
+      <h1 className="text-xl">DashBoards</h1>
+      <div className="flex justify-center items-center bg-gradient-to-r from-neutral-dark to-primary bg-opacity-80 mt-4 mb-1 p-1 rounded-xl w-[12rem]">
+        {!addDashboard ? (
+          <button
+            onClick={() => setAdddash((prestate) => !prestate)}
+            className="flex items-center gap-2 text-neutral hover:text-neutral-light"
           >
-            <div
-              className={`bg-neutral rounded-full w-[1.5rem] h-[1.5rem] text-center text-primary-dark font-semibold`}
-            >
-              <p>{element.name.charAt(0).toUpperCase()}</p>
-            </div>
-            <p className="hover:text-primary-light">{element.name}</p>
-          </Link>
-        ))}
-      </ul>
-      <hr></hr>
-      <h1 className="text-lg">Members</h1>
-      <ul className="flex flex-col gap-1 p-2 w-[12rem] h-1/4 overflow-y-auto">
-        {members.map((element: Dashboard) => (
-          <li className="flex items-center gap-2 text-sm" key={element.id}>
-            <div className="flex justify-center items-center bg-neutral-light rounded-full w-[1.5rem] h-[1.5rem] font-semibold text-secondary">
-              <p>{element.name.charAt(0).toUpperCase()}</p>
-            </div>
-            <p className="text-neutral">{element.name}</p>
-          </li>
-        ))}
-      </ul>
+            Create <MdOutlineDashboardCustomize className="text-xl" />
+          </button>
+        ) : (
+          <div className="relative w-full h-fit">
+            <input
+              placeholder="Dashboard name"
+              type="text"
+              className="p-1 rounded-xl outline-none w-full text-neutral-dark"
+              onChange={(event) => setDashname(event.target.value)}
+            ></input>
+            <RxCross1
+              onClick={() => {
+                setAdddash((prestate) => !prestate);
+                setDashname("");
+              }}
+              className="top-1.5 right-2 absolute hover:bg-neutral bg-opacity-50 p-1 rounded-full text-neutral-dark hover:text-primary-dark text-xl cursor-pointer"
+            />
+          </div>
+        )}
+
+        {dashName !== "" && addDashboard && (
+          <button
+            onClick={() => {
+              mutation.mutate(dashName);
+              setAdddash((prestate) => !prestate);
+              setDashname("");
+            }}
+            className="bg-primary-dark rounded-full text-neutral-light text-3xl"
+          >
+            <CiCirclePlus />
+          </button>
+        )}
+      </div>
+      <SidebarDash setDash={setDash} />
+      {currentDash && (
+        <>
+          <hr></hr>
+          <SiderbarMembers dashboardId={currentDash?.id || null} />
+        </>
+      )}
     </div>
   );
 };

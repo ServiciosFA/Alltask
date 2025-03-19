@@ -1,25 +1,81 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import fotoLogin from "../../assets/login.jpeg";
 import { useDispatch } from "react-redux";
 import { login } from "../../store/loginSlice";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { supabase } from "../../lib/superbaseClient";
 
-interface LoginFormInputs {
+import { showNotification } from "../../store/notifiSlice";
+
+type FormData = {
+  user: string;
   email: string;
   password: string;
-}
+};
+
+type UserResponse = {
+  user: {
+    id: string;
+  } | null;
+};
 
 const Login = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormInputs>();
+  } = useForm<FormData>();
+  const logUser = async (dataForm: FormData): Promise<UserResponse | null> => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: dataForm.email,
+      password: dataForm.password,
+    });
 
-  const onSubmit: SubmitHandler<LoginFormInputs> = (data) => {
-    console.log(data);
-    dispatch(login());
+    if (error) {
+      dispatch(
+        showNotification({
+          message: "Error logging in",
+          type: "error",
+        })
+      );
+      return null;
+    }
+
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", data.user.id)
+      .single();
+
+    if (userError) {
+      console.error("Error fetching user data:", userError.message);
+    }
+    console.log(userData);
+    // 🔹 Asegurar que el estado de Redux tenga los datos correctos
+    dispatch(login(userData));
+
+    dispatch(
+      showNotification({
+        message: "User logged in",
+        type: "success",
+      })
+    );
+
+    navigate(`/user/${data.user.id}/dashboards`);
+    return { user: userData || data.user };
+  };
+
+  const onSubmit: SubmitHandler<FormData> = async (dataForm) => {
+    const response = await logUser(dataForm);
+
+    if (response?.user?.id) {
+      dispatch(login(response.user));
+      navigate(`/user/${response.user.id}/dashboards`);
+    } else {
+      console.error("Login failed: No user ID received.");
+    }
   };
 
   return (
@@ -38,38 +94,37 @@ const Login = () => {
           >
             <div className="flex flex-col items-center gap-4">
               <input
-                placeholder="Email"
-                className="p-1 rounded-md w-3/4 text-neutral-dark"
+                placeholder={errors.email ? errors.email?.message : "Email"}
+                className={
+                  errors.email
+                    ? "p-2 rounded-md w-3/4 placeholder-red-500"
+                    : "p-2 rounded-md w-3/4 text-neutral-dark "
+                }
                 type="text"
                 {...register("email")}
               ></input>
-              {errors.email && (
-                <p className="text-red-500 text-xs">{errors.email.message}</p>
-              )}
+
               <input
-                placeholder="Password"
-                className="p-1 rounded-md w-3/4 text-neutral-dark"
+                placeholder={
+                  errors.password ? errors.password?.message : "Password"
+                }
+                className={
+                  errors.password
+                    ? "p-2 rounded-md w-3/4 placeholder-red-500"
+                    : "p-2 rounded-md w-3/4 text-neutral-dark "
+                }
                 type="password"
                 {...register("password")}
               ></input>
-              {errors.password && (
-                <p className="text-red-500 text-xs">
-                  {errors.password.message}
-                </p>
-              )}
             </div>
             <p className="self-center mt-2 py-2 text-primary-light text-sm cursor-pointer">
               Forgot your password?
             </p>
-            <Link
-              onClick={() => dispatch(login())}
-              className="self-center"
-              to="/dashboards"
-            >
+            <div className="self-center">
               <button className="bg-neutral mt-4 py-1 rounded-lg w-[6rem] text-primary text-lg">
                 Login
               </button>
-            </Link>
+            </div>
           </form>
           <p className="py-4 text-sm">
             Don't have an account?{" "}

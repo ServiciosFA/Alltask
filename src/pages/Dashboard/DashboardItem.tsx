@@ -1,116 +1,134 @@
 import { useLocation } from "react-router-dom";
 import NavbarDash from "../../components/NavbarDash";
-import { Dashboard, TaskList } from "../../types/dashboard";
-import { useEffect, useRef, useState } from "react";
-import { FaPlus } from "react-icons/fa6";
-import { CiImageOn } from "react-icons/ci";
-import Notes from "./Notes";
-import { BsThreeDots } from "react-icons/bs";
+import { Dashboard } from "../../types/dashboard";
+import { useState } from "react";
+import TaskItem from "./Tasks/TaskItem";
+import { FaPlus } from "react-icons/fa";
 import { RxCross1 } from "react-icons/rx";
+import { supabase } from "../../lib/superbaseClient";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+// Función para obtener la lista de tareas y sus notas
+const fetchTaskLists = async (dashboardId: string) => {
+  if (!dashboardId) return [];
+
+  const { data, error } = await supabase
+    .from("task_lists")
+    .select(
+      `
+      *,
+      notes (
+        id,
+        description,
+        created_at
+      )
+    `
+    )
+    .eq("dashboard_id", dashboardId);
+
+  if (error) {
+    console.error("Error en la consulta:", error.message);
+    return [];
+  }
+
+  return data;
+};
 
 const DashboardItem = () => {
   const location = useLocation();
   const dashboard: Dashboard | undefined = location.state;
-  const [listTask, setListtask] = useState<TaskList[]>([]);
-  const [showAdd, setShowAdd] = useState("");
-  const textareaRef = useRef<HTMLLIElement | null>(null);
+  const [addtask, setAddtask] = useState(false);
+  const [nameTask, setNametask] = useState("");
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    setListtask([
-      {
-        id: "1",
-        name: "Lista de tareas",
-        notes: [
-          { id: "1", name: "banner", description: "Realizar banner" },
-          { id: "2", name: "navbar", description: "Realizar navbar" },
-          { id: "3", name: "navbar", description: "Responsive navbar" },
-        ],
-      },
-      {
-        id: "2",
-        name: "En proceso",
-        notes: [
-          { id: "4", name: "Homepage", description: "Realizar Home page" },
-          {
-            id: "5",
-            name: "Homepage",
-            description:
-              "Responsive Home page mobile,tablet, notebook & desktop",
-          },
-          { id: "6", name: "Footer", description: "Realizar footer" },
-        ],
-      },
-      {
-        id: "31",
-        name: "Hecho",
-        notes: [
-          { id: "7", name: "Login", description: "Realizar diseño login" },
-          { id: "8", name: "Signin", description: "Realizar diseño signing" },
-          {
-            id: "9",
-            name: "controles formularios",
-            description: "Realizar controles en formularios",
-          },
-        ],
-      },
-    ]);
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        textareaRef.current &&
-        !textareaRef.current.contains(event.target as Node)
-      ) {
-        setShowAdd("");
-      }
-    };
+  // 🔹 Obtener la lista de tareas con React Query
+  const {
+    data: listTask = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["taskLists", dashboard?.id],
+    queryFn: () => fetchTaskLists(dashboard?.id || ""),
+    enabled: !!dashboard?.id, // Solo ejecuta si hay un dashboard
+  });
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // 🔹 Mutación para agregar una nueva tarea
+  const createTaskListMutation = useMutation({
+    mutationFn: async (nameTask: string) => {
+      const { data, error } = await supabase
+        .from("task_lists")
+        .insert([{ name: nameTask, dashboard_id: dashboard?.id }])
+        .select()
+        .single();
+
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["taskLists", dashboard?.id] }); // Recargar lista
+      setNametask("");
+      setAddtask(false);
+    },
+  });
+
+  const handleCreateTaskList = () => {
+    if (!nameTask.trim() || !dashboard) return;
+    createTaskListMutation.mutate(nameTask);
+  };
 
   return (
-    <div className="bg-gradient-to-tr from-primary-dark to-primary w-full h-full overflow-auto">
+    <div className="bg-gradient-to-tr from-primary-dark to-secondary w-full h-full overflow-auto">
       <NavbarDash currentDash={dashboard ? dashboard : null} />
-      <ul className="flex gap-6 p-4">
+      <ul className="flex gap-4 p-4 h-full">
+        {/* 🔹 Mensaje de carga */}
+        {isLoading && <p>Loading tasks...</p>}
+        {isError && <p>Error loading tasks</p>}
+
+        {/* 🔹 Mostrar las tareas */}
         {listTask.map((element) => (
-          <li
-            className="flex flex-col bg-neutral-dark bg-opacity-60 p-2 rounded-lg w-[15rem] h-full cursor-pointer"
+          <TaskItem
             key={element.id}
-            ref={textareaRef}
-          >
-            <div className="flex justify-between items-center">
-              <p>{element.name}</p>
-              <BsThreeDots className="flex items-center hover:bg-slate-500 p-1 rounded-md text-xl cursor-pointer" />
-            </div>
-            <Notes notes={element.notes} />
-            <div className="flex justify-between pt-2 text-neutral-300 text-sm">
-              {showAdd !== element.id ? (
-                <div
-                  onClick={() => setShowAdd(element.id)}
-                  className="flex items-center gap-2 hover:bg-slate-500 p-1 rounded-md cursor-pointer"
-                >
-                  <FaPlus />
-                  <p>Add Card</p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-start gap-2 p-1">
-                  <textarea
-                    placeholder="Introduce your text..."
-                    className="bg-neutral-dark p-2 rounded-md w-[10rem] h-[4rem] text-start break-words text-wrap resize-none"
-                  ></textarea>
-                  <div className="flex items-center gap-2 w-full">
-                    <button className="bg-neutral-dark hover:bg-secondary p-1 rounded-md">
-                      Add Card
-                    </button>
-                    <RxCross1 className="hover:bg-neutral-dark p-1 rounded-md w-[1.5rem] h-[1.5rem]" />
-                  </div>
-                </div>
-              )}
-              <div className="flex items-center hover:bg-slate-500 p-2 rounded-md h-fit cursor-pointer">
-                <CiImageOn />
-              </div>
-            </div>
-          </li>
+            element={element}
+            setListtask={() => {}} // Ya no necesitamos actualizar manualmente
+            dashboard={dashboard}
+          />
         ))}
+
+        {/* 🔹 Botón para agregar nueva tarea */}
+        <li className="relative flex flex-col gap-2 bg-secondary-light hover:bg-secondary-dark bg-opacity-80 p-2 rounded-lg w-[15rem] h-fit cursor-pointer">
+          {!addtask ? (
+            <div
+              onClick={() => setAddtask(true)}
+              className="flex justify-between items-center"
+            >
+              <p className="items-self-center">Add new task</p>
+              <FaPlus />
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center">
+                <input
+                  className="p-1 rounded-sm outline-none text-secondary"
+                  placeholder="Name task..."
+                  onChange={(e) => setNametask(e.target.value)}
+                  value={nameTask}
+                />
+              </div>
+              <div className="flex items-center gap-2 w-full">
+                <button
+                  onClick={handleCreateTaskList}
+                  className="bg-neutral-dark hover:bg-secondary p-1 rounded-md"
+                >
+                  Add Task
+                </button>
+                <RxCross1
+                  onClick={() => setAddtask(false)}
+                  className="hover:bg-neutral-dark p-1 rounded-md w-[1.5rem] h-[1.5rem]"
+                />
+              </div>
+            </>
+          )}
+        </li>
       </ul>
     </div>
   );

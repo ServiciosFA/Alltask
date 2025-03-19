@@ -1,7 +1,7 @@
 import welcome from "../../assets/welcome.png";
 const Banner = () => {
   return (
-    <div className="flex gap-2 bg-gradient-to-br from-primary-dark to-primary">
+    <div className="flex gap-2 bg-gradient-to-tr from-secondary-light to-primary-dark">
       <div className="relative w-1/2">
         <img className="z-0 w-full h-full" src={welcome}></img>
         <div className="z-10 absolute inset-0 bg-secondary bg-opacity-30"></div>
