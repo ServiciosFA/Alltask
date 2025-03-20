@@ -20,6 +20,7 @@ export interface TaskList {
   id: string;
   name: string;
   notes: Notestype[];
+  priority?: 1 | 2 | 3;
 }
 export interface Member {
   id: string;

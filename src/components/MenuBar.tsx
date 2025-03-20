@@ -2,6 +2,7 @@ import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { deslogin } from "../store/loginSlice";
 import { showNotification } from "../store/notifiSlice";
+import { persistor } from "../store/store";
 
 const MenuBar = ({
   userid,
@@ -45,6 +46,7 @@ const MenuBar = ({
               type: "info",
             })
           );
+          persistor.purge();
           navigate("/");
           setMenuOpen(false);
         }}

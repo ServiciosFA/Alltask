@@ -33,7 +33,7 @@ const AddMember = ({
 
   // Hook para la búsqueda de usuarios
   const { data: searchMembers = [], refetch } = useQuery({
-    queryKey: ["searchMembers", currentName],
+    queryKey: ["searchMembersDashboard", currentName],
     queryFn: () => fetchMembers(currentName),
     enabled: false, // Solo ejecuta cuando se llame manualmente con `refetch`
   });
@@ -104,17 +104,17 @@ const AddMember = ({
         }}
       />
       {searchMembers.length > 0 && (
-        <ul className="bg-neutral-light rounded-sm w-3/4 max-h-[5rem] overflow-auto text-neutral-dark">
-          {searchMembers.map((elem) => (
+        <ul className="z-10 bg-secondary rounded-md w-3/4 max-h-[5rem] overflow-auto text-primary">
+          {searchMembers?.map((elem) => (
             <li
-              key={elem.id}
+              key={elem?.id}
               className="hover:bg-primary-dark hover:bg-opacity-30 px-1 cursor-pointer"
               onClick={() => {
                 setSelectedMember(elem);
-                setCurrentName(elem.nickname);
+                setCurrentName(elem?.nickname);
               }}
             >
-              {elem.nickname}
+              {elem?.nickname}
             </li>
           ))}
         </ul>

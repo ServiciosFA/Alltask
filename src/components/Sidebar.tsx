@@ -24,8 +24,6 @@ const Sidebar = () => {
       throw new Error("User not authenticated");
     }
 
-    console.log("Inserting dashboard:", name);
-
     // Insert dashboard
     const { data: dashboardData, error: dashboardError } = await supabase
       .from("dashboards")
@@ -37,8 +35,6 @@ const Sidebar = () => {
       console.error("Dashboard insert error:", dashboardError);
       throw new Error(dashboardError.message);
     }
-
-    console.log("Dashboard inserted:", dashboardData);
 
     // Associate user with dashboard
     const { error: userDashboardError } = await supabase
@@ -52,7 +48,6 @@ const Sidebar = () => {
       throw new Error(userDashboardError.message);
     }
 
-    console.log("Dashboard user association successful");
     return dashboardData;
   };
 
@@ -69,7 +64,7 @@ const Sidebar = () => {
   });
 
   return (
-    <div className="flex flex-col justify-between gap-1 bg-gradient-to-b from-secondary to-secondary-light p-4 border-r-[1px] w-1/5 h-min-full">
+    <div className="flex flex-col justify-between gap-1 bg-gradient-to-b from-secondary to-secondary-light p-4 border-r-[1px] w-[15rem] h-min-full">
       <h1 className="text-xl">DashBoards</h1>
       <div className="flex justify-center items-center bg-gradient-to-r from-neutral-dark to-primary bg-opacity-80 mt-4 mb-1 p-1 rounded-xl w-[12rem]">
         {!addDashboard ? (
@@ -86,6 +81,13 @@ const Sidebar = () => {
               type="text"
               className="p-1 rounded-xl outline-none w-full text-neutral-dark"
               onChange={(event) => setDashname(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && dashName.trim() !== "") {
+                  mutation.mutate(dashName);
+                  setAdddash(false);
+                  setDashname("");
+                }
+              }}
             ></input>
             <RxCross1
               onClick={() => {

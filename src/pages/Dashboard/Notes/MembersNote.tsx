@@ -64,7 +64,7 @@ const MembersNote = ({
         className="top-3 right-3 absolute hover:bg-secondary-light p-1 rounded-full w-[1.5rem] h-[1.5rem] cursor-pointer"
       />
       <div className="flex flex-col gap-2 h-full">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 w-3/4">
           {editNote ? (
             <div className="w-full">
               <textarea
@@ -105,10 +105,12 @@ const MembersNote = ({
             </p>
           )}
           {!editNote && (
-            <FiEdit3
+            <div
               onClick={() => setEditNote(true)}
-              className="bg-secondary-light hover:bg-secondary p-1 rounded-full text-primary-light text-lg cursor-pointer"
-            />
+              className="bg-secondary-light hover:bg-secondary m-1 p-1 rounded-full h-fit text-primary-light text-xl cursor-pointer"
+            >
+              <FiEdit3 className="text-sm" />
+            </div>
           )}
         </div>
 

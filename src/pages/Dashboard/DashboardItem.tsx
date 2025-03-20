@@ -24,7 +24,8 @@ const fetchTaskLists = async (dashboardId: string) => {
       )
     `
     )
-    .eq("dashboard_id", dashboardId);
+    .eq("dashboard_id", dashboardId)
+    .order("priority", { ascending: true });
 
   if (error) {
     console.error("Error en la consulta:", error.message);
@@ -99,7 +100,7 @@ const DashboardItem = () => {
           {!addtask ? (
             <div
               onClick={() => setAddtask(true)}
-              className="flex justify-between items-center"
+              className="flex justify-between items-center min-w-[10rem]"
             >
               <p className="items-self-center">Add new task</p>
               <FaPlus />
@@ -112,6 +113,12 @@ const DashboardItem = () => {
                   placeholder="Name task..."
                   onChange={(e) => setNametask(e.target.value)}
                   value={nameTask}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && nameTask.trim() !== "") {
+                      handleCreateTaskList();
+                      setAddtask(false);
+                    }
+                  }}
                 />
               </div>
               <div className="flex items-center gap-2 w-full">

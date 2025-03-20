@@ -19,7 +19,7 @@ const fetchMembers = async (
 
   const { data, error } = await supabase
     .from("dashboard_users")
-    .select("users!inner(id, nickname)")
+    .select("user_id, users(id, nickname)")
     .eq("dashboard_id", dashboardId)
     .ilike("users.nickname", `%${name}%`);
 
@@ -38,7 +38,7 @@ const MemberNoteModal = ({
   const { did: dashboardId } = useParams();
   const [currentName, setCurrentname] = useState("");
   const [selectedUser, setSelectedUser] = useState<Userinterface | null>(null);
-  const [searchedMembers, setSearcherMembers] = useState(false);
+  const [searchedMemberss, setSearcherMemberss] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -69,7 +69,7 @@ const MemberNoteModal = ({
 
   // Query para buscar miembros
   const { data: searchMembers = [], refetch } = useQuery({
-    queryKey: ["searchMembers", currentName],
+    queryKey: ["searchMembersNote", currentName],
     queryFn: () => fetchMembers(dashboardId || "", currentName),
     enabled: false,
   });
@@ -84,20 +84,20 @@ const MemberNoteModal = ({
         value={currentName}
         onChange={(event) => {
           setCurrentname(event.target.value);
-          setSearcherMembers(true);
+          setSearcherMemberss(true);
           refetch();
         }}
       />
-      {searchMembers.length > 0 && searchedMembers && (
-        <ul className="bg-neutral-light rounded-sm w-3/4 max-h-[5rem] overflow-auto text-neutral-dark">
-          {searchMembers.map((elem: Userinterface) => (
+      {searchMembers.length > 0 && searchedMemberss && (
+        <ul className="bg-secondary rounded-md w-3/4 max-h-[5rem] overflow-auto text-primary">
+          {searchMembers?.map((elem: Userinterface) => (
             <li
-              key={elem.id}
+              key={elem?.id}
               className="hover:bg-primary-dark hover:bg-opacity-30 px-1 cursor-pointer"
               onClick={() => {
                 setSelectedUser(elem);
-                setCurrentname(capitalize(elem.nickname));
-                setSearcherMembers(false);
+                setCurrentname(capitalize(elem?.nickname));
+                setSearcherMemberss(false);
               }}
             >
               {elem?.nickname}

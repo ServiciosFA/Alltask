@@ -1,13 +1,20 @@
 import { NavLink } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../store/store";
+
 import logo from "../assets/logo.png";
 import { FaUserCircle } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
-
 import MenuBar from "./MenuBar";
 import { capitalize } from "../Helps/capitalize";
+
+interface RootState {
+  login: {
+    isLogin: boolean;
+    nickname: string;
+    id: string;
+  };
+}
 
 const Navbar = () => {
   const isLogin = useSelector((state: RootState) => state.login);

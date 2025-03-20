@@ -10,6 +10,7 @@ import Member from "./pages/Members/Member";
 import "react-toastify/dist/ReactToastify.css";
 import Notification from "./components/Notification";
 import { ToastContainer } from "react-toastify";
+import ProtectedRoute from "./Helps/ProtectedRoute";
 
 function AppRoutes() {
   return (
@@ -21,10 +22,12 @@ function AppRoutes() {
           <Route path="signup" element={<Signup />} />
 
           {/* Rutas de usuario */}
-          <Route path="user/:id" element={<User />} />
-          <Route path="user/:id/dashboards" element={<Dashboards />}>
-            <Route path=":did" element={<DashboardItem />} />
-            <Route path="member/:mid" element={<Member />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="user/:id" element={<User />} />
+            <Route path="user/:id/dashboards" element={<Dashboards />}>
+              <Route path=":did" element={<DashboardItem />} />
+              <Route path="member/:mid" element={<Member />} />
+            </Route>
           </Route>
         </Route>
       </Routes>

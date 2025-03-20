@@ -4,7 +4,6 @@ import { useDispatch } from "react-redux";
 import { login } from "../../store/loginSlice";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { supabase } from "../../lib/superbaseClient";
-
 import { showNotification } from "../../store/notifiSlice";
 
 type FormData = {
@@ -27,6 +26,7 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>();
+
   const logUser = async (dataForm: FormData): Promise<UserResponse | null> => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email: dataForm.email,
@@ -43,6 +43,7 @@ const Login = () => {
       return null;
     }
 
+    // 🔹 Se mantiene la consulta a la tabla users sin modificaciones
     const { data: userData, error: userError } = await supabase
       .from("users")
       .select("*")
@@ -53,7 +54,7 @@ const Login = () => {
       console.error("Error fetching user data:", userError.message);
     }
     console.log(userData);
-    // 🔹 Asegurar que el estado de Redux tenga los datos correctos
+
     dispatch(login(userData));
 
     dispatch(
@@ -81,7 +82,7 @@ const Login = () => {
   return (
     <div className="flex bg-gradient-to-br from-primary-dark to-primary h-screen">
       <div className="relative bg-neutral-dark w-1/2">
-        <img src={fotoLogin} className="w-full h-full"></img>
+        <img src={fotoLogin} className="w-full h-full" alt="Login" />
         <div className="z-1 absolute inset-0 bg-gray-800 bg-opacity-50"></div>
       </div>
       <div className="flex flex-col items-center gap-10 bg-gradient-to-r from-primary-dark to-primary-light w-1/2 h-full">
@@ -95,27 +96,23 @@ const Login = () => {
             <div className="flex flex-col items-center gap-4">
               <input
                 placeholder={errors.email ? errors.email?.message : "Email"}
-                className={
-                  errors.email
-                    ? "p-2 rounded-md w-3/4 placeholder-red-500"
-                    : "p-2 rounded-md w-3/4 text-neutral-dark "
-                }
+                className={`p-2 rounded-md w-3/4 ${
+                  errors.email ? "placeholder-red-500" : "text-neutral-dark"
+                }`}
                 type="text"
                 {...register("email")}
-              ></input>
+              />
 
               <input
                 placeholder={
                   errors.password ? errors.password?.message : "Password"
                 }
-                className={
-                  errors.password
-                    ? "p-2 rounded-md w-3/4 placeholder-red-500"
-                    : "p-2 rounded-md w-3/4 text-neutral-dark "
-                }
+                className={`p-2 rounded-md w-3/4 ${
+                  errors.password ? "placeholder-red-500" : "text-neutral-dark"
+                }`}
                 type="password"
                 {...register("password")}
-              ></input>
+              />
             </div>
             <p className="self-center mt-2 py-2 text-primary-light text-sm cursor-pointer">
               Forgot your password?
@@ -129,7 +126,7 @@ const Login = () => {
           <p className="py-4 text-sm">
             Don't have an account?{" "}
             <span className="pl-1 text-primary-light cursor-pointer">
-              <Link to="/signup"> Sing up from free</Link>
+              <Link to="/signup"> Sign up for free</Link>
             </span>
           </p>
         </div>
