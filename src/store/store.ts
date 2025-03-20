@@ -30,5 +30,11 @@ export const store = configureStore({
     }),
 });
 
+// ✅ Exportamos `RootState` para que pueda ser usado en useSelector
+export type RootState = ReturnType<typeof rootReducer>;
+
+// ✅ Exportamos `AppDispatch` (opcional, pero recomendado)
+export type AppDispatch = typeof store.dispatch;
+
 // Creamos el persistor
 export const persistor = persistStore(store);

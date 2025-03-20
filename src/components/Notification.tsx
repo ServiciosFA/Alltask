@@ -5,7 +5,13 @@ import { useEffect } from "react";
 import { toast } from "react-toastify";
 
 const Notification = () => {
-  const { message, type } = useSelector((state: RootState) => state.notify);
+  const { message, type } = useSelector(
+    (state: RootState) =>
+      state.notify as {
+        message: string;
+        type: "success" | "error" | "info" | "warning";
+      }
+  );
   const dispatch = useDispatch();
 
   useEffect(() => {
