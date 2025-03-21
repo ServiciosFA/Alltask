@@ -15,6 +15,8 @@ export interface Notestype {
   description: string;
   assignedUsers: string[];
   comments: Comment[];
+  state: 1 | 2;
+  created_at: string;
 }
 export interface TaskList {
   id: string;

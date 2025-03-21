@@ -9,6 +9,7 @@ import Confirm from "../../../components/Confirm";
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../../lib/superbaseClient";
 import { capitalize } from "../../../Helps/capitalize";
+import { IoCheckmarkDoneCircle } from "react-icons/io5";
 
 interface Userinterface {
   id: string;
@@ -78,6 +79,50 @@ const Notes = ({
     return acc;
   }, {} as Record<string, Userinterface[]>);
 
+  const updateNoteStateMutation = useMutation({
+    mutationFn: async ({ id, newState }: { id: string; newState: 1 | 2 }) => {
+      const { error } = await supabase
+        .from("notes")
+        .update({ state: newState })
+        .eq("id", id);
+
+      if (error) throw new Error(error.message);
+    },
+    onMutate: async ({ id, newState }) => {
+      await queryClient.cancelQueries({ queryKey: ["notes"] });
+
+      // Guardar el estado previo por si hay un error
+      const previousNotes = queryClient.getQueryData<Notestype[]>(["notes"]);
+
+      // 🔹 Actualizar la UI antes de recibir respuesta del servidor (Optimistic Update)
+      queryClient.setQueryData<Notestype[]>(
+        ["notes"],
+        (oldNotes = []) =>
+          oldNotes
+            .map((note) =>
+              note.id === id ? { ...note, state: newState } : note
+            )
+            .sort(
+              (a, b) =>
+                new Date(a.created_at).getTime() -
+                new Date(b.created_at).getTime()
+            ) // Ordenar por fecha de creación
+      );
+
+      return { previousNotes };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousNotes) {
+        queryClient.setQueryData(["notes"], context.previousNotes);
+      }
+    },
+    onSettled: async () => {
+      // 🔹 Forzar actualización para obtener los datos más recientes
+      await queryClient.invalidateQueries({ queryKey: ["notes"] });
+      await queryClient.invalidateQueries({ queryKey: ["taskLists"] }); // Opcional si depende de otras listas
+    },
+  });
+
   return (
     <ul className="flex flex-col gap-2">
       {notes.map((element) => (
@@ -88,11 +133,16 @@ const Notes = ({
           onMouseLeave={() => setIdnote(null)}
           onClick={() => {
             setCurrentnote(element);
-            setShowmodal(true);
           }}
         >
           {/* Contenedor para abrir el modal al hacer clic en la nota */}
-          <div className="p-2 w-full text-xs break-words cursor-pointer">
+          <div
+            className={
+              element.state === 1
+                ? "p-2 w-full text-xs break-words cursor-pointer "
+                : "p-2 w-full text-xs break-words cursor-pointer line-through text-neutral-dark"
+            }
+          >
             {capitalize(element.description)}
           </div>
 
@@ -118,6 +168,21 @@ const Notes = ({
               />
             </ul>
           )}
+          <div className="right-[1px] bottom-[1px] absolute rounded-full w-5 h-5 overflow-hidden text-xl">
+            <IoCheckmarkDoneCircle
+              className={
+                element.state === 1
+                  ? `bg-neutral-dark hover:bg-neutral-light text-black`
+                  : `bg-primary-light hover:bg-neutral-dark text-black`
+              }
+              onClick={() => {
+                updateNoteStateMutation.mutate({
+                  id: element?.id,
+                  newState: element.state === 1 ? 2 : 1,
+                });
+              }}
+            />
+          </div>
         </li>
       ))}
 

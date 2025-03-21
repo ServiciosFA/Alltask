@@ -20,7 +20,6 @@ function AppRoutes() {
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
-
           {/* Rutas de usuario */}
           <Route element={<ProtectedRoute />}>
             <Route path="user/:id" element={<User />} />

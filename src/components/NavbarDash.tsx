@@ -45,18 +45,6 @@ const NavbarDash = ({ currentDash }: { currentDash: Dashboard | null }) => {
 
       console.log(`Intentando eliminar dashboard con ID: ${dashboardId}`);
 
-      // 🔍 Verificar si el dashboard existe antes de eliminar
-      const { data: existingDashboard, error: fetchError } = await supabase
-        .from("dashboards")
-        .select("*")
-        .eq("id", dashboardId)
-        .single();
-
-      if (fetchError || !existingDashboard) {
-        console.error("El dashboard no existe o hubo un error al obtenerlo.");
-        return;
-      }
-
       // 🔥 Eliminar todas las listas de tareas y sus notas
       const { data: taskLists, error: taskListError } = await supabase
         .from("task_lists")
@@ -66,8 +54,6 @@ const NavbarDash = ({ currentDash }: { currentDash: Dashboard | null }) => {
       if (taskListError) throw taskListError;
 
       const taskListIds = taskLists.map((task) => task.id);
-      console.log("Task lists a eliminar:", taskListIds);
-
       if (taskListIds.length > 0) {
         const { error: notesError } = await supabase
           .from("notes")
@@ -75,30 +61,19 @@ const NavbarDash = ({ currentDash }: { currentDash: Dashboard | null }) => {
           .in("task_list_id", taskListIds);
         if (notesError) throw notesError;
       }
-
-      const { error: taskDeleteError } = await supabase
-        .from("task_lists")
-        .delete()
-        .eq("dashboard_id", dashboardId);
-      if (taskDeleteError) throw taskDeleteError;
-
-      // 🔥 Eliminar usuarios del dashboard
-      const { error: userDeleteError } = await supabase
-        .from("dashboard_users")
-        .delete()
-        .eq("dashboard_id", dashboardId);
-      if (userDeleteError) throw userDeleteError;
-
       // 🔥 Eliminar el dashboard
       const { error: dashboardDeleteError } = await supabase
         .from("dashboards")
         .delete()
         .eq("id", dashboardId);
-      if (dashboardDeleteError) throw dashboardDeleteError;
+
+      if (dashboardDeleteError) {
+        console.error("Error al eliminar el dashboard:", dashboardDeleteError);
+        return;
+      }
 
       console.log("Dashboard eliminado correctamente.");
       navigate(`/user/${id}/dashboards`);
-
       queryClient.invalidateQueries({ queryKey: ["userDashboards"] });
     } catch (error) {
       console.error("Error eliminando el dashboard:", error);
@@ -116,10 +91,8 @@ const NavbarDash = ({ currentDash }: { currentDash: Dashboard | null }) => {
     };
   }, []);
 
-  console.log(userRole);
-
   return (
-    <div className="flex justify-between items-center bg-neutral-dark bg-opacity-60 p-2 w-screen">
+    <div className="top-0 right-0 left-0 z-20 sticky flex justify-between items-center bg-neutral-dark bg-opacity-60 p-2 w-full">
       <div className="relative flex items-center gap-3 h-full">
         <h1>{capitalize(currentDash?.name)}</h1>
         <div className="relative">

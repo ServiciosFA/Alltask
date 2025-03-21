@@ -7,14 +7,18 @@ import { FaPlus } from "react-icons/fa";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../../lib/superbaseClient";
 import { capitalize } from "../../../Helps/capitalize";
+import { useDispatch } from "react-redux";
+import { showNotification } from "../../../store/notifiSlice";
+import Modal from "../../../components/Modal";
+import Confirm from "../../../components/Confirm";
 
 const TaskItem = ({
   element,
-  setListtask,
+
   dashboard,
 }: {
   element: TaskList;
-  setListtask: React.Dispatch<React.SetStateAction<TaskList[]>>;
+
   dashboard: Dashboard | undefined;
 }) => {
   const [showAdd, setShowAdd] = useState<string | null>(null);
@@ -29,6 +33,8 @@ const TaskItem = ({
   const listRefs = useRef<{ [key: string]: HTMLLIElement | null }>({});
   const menuRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const dispatch = useDispatch();
+  const [confirm, setConfirm] = useState(false);
 
   //Manejador de texto de nueva note
   const handleNoteChange = (id: string, value: string) => {
@@ -49,7 +55,7 @@ const TaskItem = ({
       // Insertar la nota en la tabla 'notes' con el task_id correspondiente
       const { data: noteData, error: noteError } = await supabase
         .from("notes")
-        .insert([{ description, task_list_id: taskId }])
+        .insert([{ description, task_list_id: taskId, state: 1 }]) // Agregar status por defecto
         .select()
         .single();
 
@@ -58,15 +64,6 @@ const TaskItem = ({
       return noteData;
     },
     onSuccess: (newNote) => {
-      // Actualizar la lista de tareas para incluir la nueva nota
-      setListtask((prev) =>
-        prev.map((task) =>
-          task.id === newNote.task_id
-            ? { ...task, notes: [...(task.notes || []), newNote] }
-            : task
-        )
-      );
-
       // Limpiar el contenido del textarea
       setNotesContent((prev) => ({ ...prev, [newNote.task_id]: "" }));
       // Cerrar el formulario de agregar nota
@@ -84,10 +81,6 @@ const TaskItem = ({
   };
   //Agregar evento a una nota del tasklist
   useEffect(() => {
-    if (dashboard?.taskLists) {
-      setListtask(dashboard.taskLists);
-    }
-
     const handleClickOutside = (event: MouseEvent) => {
       if (
         showAdd &&
@@ -100,7 +93,7 @@ const TaskItem = ({
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dashboard?.taskLists, setListtask, showAdd]);
+  }, [dashboard?.taskLists, showAdd]);
   //Agregar evento al menu determinada tasklist para cerrar el menu del tasklist cuando se clickea otra cosa que no sea el menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -136,17 +129,63 @@ const TaskItem = ({
 
       return data;
     },
-    onSuccess: (updatedTask) => {
-      // Actualizar la lista de tareas en el estado local
-      setListtask((prev) =>
-        prev.map((task) =>
-          task.id === updatedTask.id ? { ...task, ...updatedTask } : task
-        )
-      );
+    onSuccess: () => {
       // Invalidar la caché para recargar los datos actualizados
       queryClient.invalidateQueries({
         queryKey: ["taskLists", dashboard?.id].filter(Boolean),
       });
+    },
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: async ({
+      taskId,
+      dashboardId,
+    }: {
+      taskId: string;
+      dashboardId: string;
+    }) => {
+      const { error } = await supabase
+        .from("task_lists")
+        .delete()
+        .eq("id", taskId)
+        .eq("dashboard_id", dashboardId);
+      if (error) throw new Error(error.message);
+    },
+    onMutate: async ({ taskId }) => {
+      // Cancelar cualquier solicitud en curso
+      await queryClient.cancelQueries({
+        queryKey: ["taskLists", dashboard?.id],
+      });
+
+      // Guardar estado previo en caso de rollback
+      const previousTasks = queryClient.getQueryData([
+        "taskLists",
+        dashboard?.id,
+      ]);
+
+      // Actualizar la UI eliminando la tarea antes de la respuesta del servidor
+      queryClient.setQueryData(
+        ["taskLists", dashboard?.id],
+        (oldTasks: TaskList[] | undefined) => {
+          return oldTasks ? oldTasks.filter((task) => task.id !== taskId) : [];
+        }
+      );
+
+      return { previousTasks };
+    },
+    onError: (_, __, context) => {
+      // Si hay un error, restaurar el estado anterior
+      if (context?.previousTasks) {
+        queryClient.setQueryData(
+          ["taskLists", dashboard?.id],
+          context.previousTasks
+        );
+      }
+    },
+    onSettled: (_, __, { dashboardId }) => {
+      // Invalidar la caché para asegurarse de que los datos sean correctos
+      queryClient.invalidateQueries({ queryKey: ["taskLists", dashboardId] });
     },
   });
 
@@ -155,6 +194,8 @@ const TaskItem = ({
     2: "text-amber-400",
     3: "text-green-500 ",
   };
+
+  console.log(element.notes);
 
   return (
     <li
@@ -179,7 +220,7 @@ const TaskItem = ({
                   taskId: element.id,
                   updates: { name: editedName.trim() },
                 });
-                setEdit(false); // Cierra la edición
+                setEdit(false);
               }
             }}
           ></textarea>
@@ -259,7 +300,10 @@ const TaskItem = ({
                   </ul>
                 )}
               </div>
-              <p className="hover:bg-neutral hover:bg-opacity-15 px-1 text-red-400 cursor-pointer">
+              <p
+                onClick={() => setConfirm(true)}
+                className="hover:bg-neutral hover:bg-opacity-15 px-1 text-red-400 cursor-pointer"
+              >
                 Delete
               </p>
             </div>
@@ -267,6 +311,7 @@ const TaskItem = ({
         </div>
       </div>
       {/* Mostrar notas */}
+
       {element.notes && element.notes.length > 0 && (
         <Notes notes={element.notes} dashboard={dashboard} />
       )}
@@ -319,6 +364,32 @@ const TaskItem = ({
           </div>
         )}
       </div>
+      {confirm && (
+        <Modal>
+          <Confirm
+            onClose={() => setConfirm(false)}
+            onConfirm={() => {
+              if (!element.id) {
+                console.error("Error: No note selected!");
+                return;
+              }
+              if (dashboard && dashboard.id) {
+                dispatch(
+                  showNotification({
+                    message: "Task Deleted",
+                    type: "info",
+                  })
+                );
+                deleteTaskMutation.mutate({
+                  taskId: element.id,
+                  dashboardId: dashboard.id,
+                });
+              }
+            }}
+            message="Are you sure you want to delete this note?"
+          />
+        </Modal>
+      )}
     </li>
   );
 };

@@ -16,7 +16,6 @@ const fetchUserDashboards = async (): Promise<Dashboard[]> => {
     .select("dashboard_id, dashboards (id, name)")
     .eq("user_id", userId);
 
-  console.log("🔍 Datos obtenidos de Supabase:", data); // Agregar esto para ver qué devuelve
   if (error) throw new Error(error.message);
 
   return data.map((item) => {
@@ -60,7 +59,7 @@ const SidebarDash = ({
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <ul className="flex flex-col gap-2 custom-scrollbar w-[12rem] h-3/4 overflow-y-scroll text-primary">
+    <ul className="flex flex-col gap-2 w-[12rem] h-3/4 overflow-y-scroll text-primary custom-scrollbar">
       {dashboards?.map((element) => (
         <Link
           to={`${element.id}`}

@@ -5,7 +5,7 @@ const Member = () => {
   const location = useLocation();
   const member: User = location.state;
   return (
-    <div className="flex flex-col gap-2 bg-gradient-to-tr from-primary-dark to-secondary p-4 w-full">
+    <div className="flex flex-col gap-2 bg-gradient-to-tr from-primary-dark to-secondary p-4 w-full h-full">
       <p className="text-4xl">{member.nickname}</p>
       <p className="mt-6 text-2xl">Assigned Notes</p>
       <ul className="flex flex-col gap-3 p-4">

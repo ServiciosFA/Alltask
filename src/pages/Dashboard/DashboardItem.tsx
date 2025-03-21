@@ -20,7 +20,8 @@ const fetchTaskLists = async (dashboardId: string) => {
       notes (
         id,
         description,
-        created_at
+        created_at,
+        state
       )
     `
     )
@@ -78,7 +79,7 @@ const DashboardItem = () => {
   };
 
   return (
-    <div className="bg-gradient-to-tr from-primary-dark to-secondary w-full h-full overflow-auto">
+    <div className="relative bg-gradient-to-tr from-primary-dark to-secondary w-full h-full overflow-auto">
       <NavbarDash currentDash={dashboard ? dashboard : null} />
       <ul className="flex gap-4 p-4 h-full">
         {/* 🔹 Mensaje de carga */}
@@ -87,12 +88,7 @@ const DashboardItem = () => {
 
         {/* 🔹 Mostrar las tareas */}
         {listTask.map((element) => (
-          <TaskItem
-            key={element.id}
-            element={element}
-            setListtask={() => {}} // Ya no necesitamos actualizar manualmente
-            dashboard={dashboard}
-          />
+          <TaskItem key={element.id} element={element} dashboard={dashboard} />
         ))}
 
         {/* 🔹 Botón para agregar nueva tarea */}
