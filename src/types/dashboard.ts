@@ -7,8 +7,9 @@ export interface Dashboard {
 export interface User {
   id: string;
   nickname: string;
-  mail: string;
+  email: string;
   url: string;
+  aboutme: string;
 }
 export interface Notestype {
   id: string;
@@ -29,14 +30,19 @@ export interface Member {
   name: string;
 }
 
-export interface Comment {
-  id: string;
-  author: string;
-  text: string;
-  timestamp: string;
-}
-
 export interface NotificationState {
   message: string | null;
   type: "success" | "error" | "info" | null;
+}
+
+export interface Comment {
+  id: string;
+  text: string;
+  user_id: string;
+  note_id: string;
+  created_at: string;
+  users: {
+    id: string;
+    nickname: string;
+  };
 }

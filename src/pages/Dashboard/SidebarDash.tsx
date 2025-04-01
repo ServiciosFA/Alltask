@@ -78,7 +78,7 @@ const SidebarDash = ({
           <div className="bg-neutral rounded-full w-[1.5rem] h-[1.5rem] font-semibold text-primary-dark text-center">
             <p>{element?.name?.charAt(0).toUpperCase()}</p>
           </div>
-          <p className="hover:text-primary-light">
+          <p className="max-w-[7rem] hover:text-primary-light truncate">
             {capitalize(element?.name)}
           </p>
         </Link>

@@ -94,7 +94,9 @@ const NavbarDash = ({ currentDash }: { currentDash: Dashboard | null }) => {
   return (
     <div className="top-0 right-0 left-0 z-20 sticky flex justify-between items-center bg-neutral-dark bg-opacity-60 p-2 w-full">
       <div className="relative flex items-center gap-3 h-full">
-        <h1>{capitalize(currentDash?.name)}</h1>
+        <h1 className="max-w-[40rem] hover:text-primary-light truncate">
+          {capitalize(currentDash?.name)}
+        </h1>
         <div className="relative">
           {userRole === "admin" && (
             <ImMenu3

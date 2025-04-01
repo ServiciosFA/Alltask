@@ -92,17 +92,21 @@ const SidebarMembers = ({ dashboardId }: SidebarMembersProps) => {
           <Link
             key={element.id}
             to={`member/${element.id}`}
-            state={element}
+            state={{ element, dashboardId: dashboardId }}
             className={`flex items-center gap-2 text-sm cursor-pointer p-1 ${
               idMember === element.id ? "bg-neutral-dark rounded-lg" : ""
             }`}
-            onMouseOver={() => setIdMember(element.id)}
+            onMouseOver={() => {
+              setIdMember(element.id);
+            }}
             onMouseLeave={() => setIdMember("")}
           >
             <div className="flex justify-center items-center bg-neutral-light rounded-full w-[1.5rem] h-[1.5rem] font-semibold text-secondary">
               <p>{element.nickname.charAt(0).toUpperCase()}</p>
             </div>
-            <p className="text-neutral">{capitalize(element.nickname)}</p>
+            <p className="max-w-[7rem] text-neutral truncate">
+              {capitalize(element.nickname)}
+            </p>
           </Link>
         ))}
       </ul>

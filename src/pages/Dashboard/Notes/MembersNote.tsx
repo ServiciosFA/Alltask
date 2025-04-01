@@ -6,9 +6,11 @@ import { useState } from "react";
 import { capitalize } from "../../../Helps/capitalize";
 import { FiEdit3 } from "react-icons/fi";
 import { supabase } from "../../../lib/superbaseClient";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "../../../components/Modal";
 import MemberNoteModal from "./MemberNoteModal";
+import Comments from "../Comments/Comments";
+import { useParams } from "react-router-dom";
 interface Userinterface {
   id: string;
   nickname: string;
@@ -29,6 +31,9 @@ const MembersNote = ({
     currentNote?.description || ""
   );
   const [showAddMember, setShowAddMember] = useState(false);
+  const [currentComment, setCurrentCommnet] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { id: userId } = useParams();
 
   const updateNoteMutation = useMutation({
     mutationFn: async ({
@@ -54,6 +59,56 @@ const MembersNote = ({
       if (currentNote) {
         currentNote.description = description;
       }
+    },
+  });
+
+  const fetchComments = async (idNote: string): Promise<Comment[]> => {
+    const { data, error } = await supabase
+      .from("comments")
+      .select(
+        "id, text, created_at, user_id, note_id, users!inner(id, nickname)"
+      )
+      .eq("note_id", idNote)
+      .order("created_at", { ascending: true })
+      .returns<Comment[]>();
+
+    if (error) throw new Error(error.message);
+    return data;
+  };
+
+  const { data: comments = [] } = useQuery({
+    queryKey: ["comments", currentNote ? currentNote.id : ""],
+    queryFn: () => fetchComments(currentNote ? currentNote.id : ""),
+  });
+
+  const addCommentMutation = useMutation({
+    mutationFn: async ({
+      text,
+      userId,
+      noteId,
+    }: {
+      text: string;
+      userId: string;
+      noteId: string;
+    }) => {
+      setIsLoading(true); // Activa el estado de carga
+      const { error } = await supabase.from("comments").insert([
+        {
+          text,
+          user_id: userId,
+          note_id: noteId,
+        },
+      ]);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["comments", currentNote?.id],
+      });
+      setCurrentCommnet("");
+    },
+    onSettled: () => {
+      setIsLoading(false); // Desactiva el estado de carga
     },
   });
 
@@ -100,7 +155,7 @@ const MembersNote = ({
               )}
             </div>
           ) : (
-            <p className="text-primary-light text-base cursor-default">
+            <p className="max-w-[22rem] text-primary-light text-base break-words cursor-default line-clamp">
               {capitalize(currentNote?.description || "")}
             </p>
           )}
@@ -133,25 +188,38 @@ const MembersNote = ({
             <textarea
               placeholder="Add a comment..."
               className="bg-primary-dark p-2 rounded-lg outline-none w-full h-[3rem] text-neutral text-xs resize-none"
+              onChange={(event) => setCurrentCommnet(event.target.value)}
             />
-            <button className="bg-neutral px-2 py-1 rounded-lg text-primary-dark">
-              Save
+            <button
+              onClick={() => {
+                if (currentNote?.id && userId && currentComment.trim()) {
+                  addCommentMutation.mutate({
+                    text: currentComment,
+                    userId: userId,
+                    noteId: currentNote.id,
+                  });
+                }
+              }}
+              className={`bg-neutral px-2 py-1 rounded-lg text-primary-dark text-sm ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={isLoading}
+            >
+              {isLoading ? "Sending..." : "Comment"}
             </button>
           </div>
 
-          <ul className="bg-neutral bg-opacity-15 p-2 rounded-lg">
-            {currentNote?.comments?.map((comment: Comment) => {
-              const user = members.find(
-                (member) => member.id === comment.author
-              );
-              return (
-                <li key={comment.id} className="flex items-center gap-2">
-                  <CircleUser type="normal" word={user?.nickname} />
-                  <p className="text-sm">{comment?.text}</p>
-                </li>
-              );
-            })}
-          </ul>
+          {comments.length === 0 ? (
+            <div className="flex justify-center items-center bg-neutral bg-opacity-15 rounded-lg h-full text-primary">
+              <p>There are no comments yet.</p>
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-1 bg-neutral bg-opacity-15 p-2 rounded-lg h-[15rem] overflow-y-auto">
+              {comments.map((comment: Comment) => (
+                <Comments key={comment.id} comment={comment} />
+              ))}
+            </ul>
+          )}
         </div>
       </div>
       {showAddMember && (

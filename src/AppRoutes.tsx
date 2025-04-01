@@ -24,7 +24,7 @@ function AppRoutes() {
           <Route element={<ProtectedRoute />}>
             <Route path="user/:id" element={<User />} />
             <Route path="user/:id/dashboards" element={<Dashboards />}>
-              <Route path=":did" element={<DashboardItem />} />
+              <Route path=":did" element={<DashboardItem />}></Route>
               <Route path="member/:mid" element={<Member />} />
             </Route>
           </Route>

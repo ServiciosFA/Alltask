@@ -53,7 +53,6 @@ const Login = () => {
     if (userError) {
       console.error("Error fetching user data:", userError.message);
     }
-    console.log(userData);
 
     dispatch(login(userData));
 

@@ -42,10 +42,15 @@ const Signup = () => {
       return { error };
     }
 
+    if (!data.user?.id) {
+      console.error("Error: No se recibió ID del usuario.");
+      return;
+    }
+
     // Insertar manualmente en la tabla public.users
     const { error: userError } = await supabase.from("users").insert([
       {
-        id: data.user?.id,
+        id: data.user.id,
         email: email,
         nickname: user,
       },

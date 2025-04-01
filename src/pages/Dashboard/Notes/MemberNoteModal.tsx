@@ -92,7 +92,7 @@ const MemberNoteModal = ({
         <ul className="bg-secondary rounded-md w-3/4 max-h-[5rem] overflow-auto text-primary">
           {searchMembers?.map((elem: Userinterface, i) => (
             <li
-              key={elem?.id + i}
+              key={elem?.id + i.toString()}
               className="hover:bg-primary-dark hover:bg-opacity-30 px-1 cursor-pointer"
               onClick={() => {
                 setSelectedUser(elem);

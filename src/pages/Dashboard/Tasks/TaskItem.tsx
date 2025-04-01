@@ -199,13 +199,17 @@ const TaskItem = ({
 
   return (
     <li
-      className={`bg-black overflow-y-auto bg-opacity-50 relative  flex flex-col justify-between gap-2 p-2 rounded-lg min-w-[13rem] h-fit max-h-[25rem] cursor-pointer shadow-sm `}
+      className={`bg-black overflow-y-auto bg-opacity-50 relative  flex flex-col justify-between gap-2 p-2 rounded-lg w-[13rem] h-fit max-h-[25rem] cursor-pointer shadow-sm `}
       key={element.id}
       ref={(el) => (listRefs.current[element.id] = el)}
     >
       <div className="flex justify-between">
         {!editName ? (
-          <p className={`${priorityColors[element?.priority ?? 3]}`}>
+          <p
+            className={`max-w-[7rem] hover:text-primary-light truncate ${
+              priorityColors[element?.priority ?? 3]
+            }`}
+          >
             {capitalize(element.name)}
           </p>
         ) : (
